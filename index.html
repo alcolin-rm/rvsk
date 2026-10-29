@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Revseeker</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="app">
+
+    <!-- LEFT COLUMN -->
+    <div class="left">
+
+        <header class="brand">
+            <button class="brand-btn" id="settingsBtn" title="Settings" aria-label="Open settings">stngs</button>
+            <div class="brand-name">Revseeker</div>
+            <div class="brand-spacer"></div>
+            <div class="account-chip" id="accountChip">
+                <span class="dot" id="accountDot"></span>
+                <span id="accountLabel">checking</span>
+            </div>
+        </header>
+
+        <div class="settings-panel hidden" id="settingsPanel">
+            <div class="settings-row">
+                <div>
+                    <div class="settings-title">Soulseek account</div>
+                    <div class="settings-value" id="settingsUser">&mdash;</div>
+                </div>
+                <button id="resetBtn" class="danger-btn">Reset credentials</button>
+            </div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-title">Download folder</div>
+                    <div class="settings-value" id="settingsOutput">&mdash;</div>
+                </div>
+            </div>
+            <div class="settings-hint">
+                Resetting clears <code>config.json</code> and <code>sockseek.conf</code>,
+                then returns you to the setup screen.
+            </div>
+        </div>
+
+        <div class="input-block">
+
+            <div class="album-row">
+                <input type="text" id="albumOrLink"
+                       placeholder="insert album / track name, or paste a VK playlist URL"
+                       spellcheck="false">
+                <label class="tickbox" title="Keep every track from one seeder folder">
+                    <input type="checkbox" id="preferOneSeeder" checked>
+                    <span class="box"></span>
+                </label>
+                <span class="tick-hint">prefer one folder / seeder</span>
+            </div>
+
+            <div class="action-row">
+                <button id="vkFetchBtn" class="secondary" disabled>Fetch from VK</button>
+                <button id="downloadBtn" class="primary" disabled>Download</button>
+            </div>
+
+            <div id="vkStatus" class="status"></div>
+
+            <textarea id="trackList"
+                      placeholder="insert track names"
+                      spellcheck="false"></textarea>
+        </div>
+
+        <div class="logs-block hidden" id="logsBlock">
+            <div class="logs-header">
+                <div class="logs-title">logs</div>
+                <button class="ghost-sm" id="clearLogsBtn" title="Hide finished jobs">clear finished</button>
+            </div>
+            <div id="jobsList" class="logs-body"></div>
+        </div>
+
+        <div class="seeders-block hidden" id="seedersBlock">
+            <div class="logs-title">seeders</div>
+            <div id="leechersList" class="logs-body"></div>
+        </div>
+
+    </div>
+
+            <!-- RIGHT COLUMN -->
+    <div class="right">
+
+        <h1 class="right-heading">"fake soulseek"</h1>
+
+        <div class="right-surface">
+
+            <div class="browse-window">
+                <div class="browse-scroll" id="browseScroll">
+                    <div class="muted" style="padding: 24px; text-align: center;">
+                        Files will appear here as the downloader picks seeders.
+                    </div>
+                </div>
+
+                <div class="browse-footer">
+                    <button class="bf-btn">Filter Help</button>
+                    <select class="bf-select"><option>-- saved filters --</option></select>
+                    <input type="text" class="bf-input">
+                    <button class="bf-btn">Clear</button>
+                    <button class="bf-btn">Save Filt</button>
+                </div>
+            </div>
+
+            <div class="expect-panel">
+                <div class="expect-title">What to expect</div>
+                <ul class="expect-list">
+                    <li>
+                        <strong>fewer "yesterday" releases.</strong>
+                        files are shared by people who buy and rip CDs, then seed them.
+                        new drops take days or weeks to appear.
+                    </li>
+                    <li>
+                        <strong>fewer russian releases.</strong>
+                        main userbase is western.
+                    </li>
+                    <li>
+                        <strong>little to no soundcloud music.</strong>
+                        fresh web-only genres (hardtech, jumpstyle, slowed and
+                        reverb edits, TikTok mixes, YouTube rips) rarely exist here.
+                        
+                    </li>
+                    <li>
+                        <strong>lossless is common.</strong>
+                        whole-album FLAC is often available from a single seeder. you are unlikely to hear
+                        a difference, depending on your audio setup.
+                        
+                    </li>
+                    <li>
+                        <strong>some tracks take a few tries.</strong>
+                        it's a p2p network. go figure.
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+    </div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

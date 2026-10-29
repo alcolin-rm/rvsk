@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "VK Tracklist Export + inj",
+  "version": "1.0.0",
+  "description": "Exports VK playlist track lists and sends them to the local Revseeker web app.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1delhXpgSbgZBWS3ZEC2ShXglPsZl0531LTyuTXuAYMNM7Gf0a2mCJS1GyqCo7UrG3u8erT3JccKQ4LuwzKoE+RruEeJHqi4kLVHu1OMZVp8dwLrZfMwqC4VMF2uVWS+g0ijMHnep/HhAKdFHCTU8tn0WfS6dV04ezFOZNpk05M/2kTbT8xd2gRfiRCmc5qT1gxpj3VQO0Uj10CweISU+KRUbSYg3UZdrvOs5RVBt0drMsLKCurmphA/wJc3E2XtUOL2ADhXXpNL9sd9K8sAXI8SF2wi9D6K7vp145MBSLDXeNBYKZwQZR2Ev0S/LkjTtBbinhV4MUDVfUzvn3BEXwIDAQAB",
+  "permissions": ["scripting", "tabs", "downloads", "alarms"],
+  "host_permissions": [
+    "https://vk.com/*",
+    "https://vk.ru/*",
+    "http://localhost:8000/*",
+    "http://127.0.0.1:8000/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "VK Tracklist Export"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://vk.com/*", "https://vk.ru/*"],
+      "js": ["content_vk.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

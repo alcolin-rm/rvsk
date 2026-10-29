@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            width: 300px;
+            padding: 16px;
+            font-family: 'Bahnschrift', 'Segoe UI', sans-serif;
+            background: #1c2c54; /* Revseeker deep blue */
+            color: #111;
+        }
+
+        .card {
+            background: #e8e8e8; /* Revseeker grey */
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        h3 {
+            color: #111;
+            font-size: 1.15em;
+            font-weight: 400;
+            margin-bottom: 4px;
+        }
+
+        p {
+            font-size: 0.85em;
+            color: #555;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.95em;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s, color 0.15s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Primary button matches the web app */
+        button.primary {
+            background: #1c2c54;
+            color: #fff;
+            border: 2px solid #1c2c54;
+        }
+        button.primary:hover:not(:disabled) { background: #2a3f70; }
+        button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Secondary button matches the web app */
+        button.secondary {
+            background: transparent;
+            color: #1c2c54;
+            border: 2px solid #1c2c54;
+        }
+        button.secondary:hover:not(:disabled) {
+            background: #1c2c54;
+            color: #fff;
+        }
+        button.secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #status {
+            font-size: 0.85em;
+            color: #1c2c54;
+            min-height: 1.4em;
+            text-align: center;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .error { color: #c02020 !important; }
+        .success { color: #1a7a3a !important; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h3>VK Tracklist Export</h3>
+        <p>Send the playlist from this tab directly to your Revseeker web app.</p>
+
+        <button id="exportCurrentBtn" class="primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+            </svg>
+            Send to Revseeker
+        </button>
+        
+        <button id="copyCurrentBtn" class="secondary">Copy to clipboard</button>
+
+        <div id="status"></div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

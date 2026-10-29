@@ -1,0 +1,162 @@
+# ──────────────────────────────────────────────
+# Python
+# ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Testing / coverage
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+hypothesis/
+
+# ──────────────────────────────────────────────
+# Application data (runtime, not source)
+# ──────────────────────────────────────────────
+config.json
+
+slsk_config.json
+logs/
+sldl_input/
+downloads/
+data/
+history.json
+jobs.db
+*.log
+*.incomplete
+
+# ──────────────────────────────────────────────
+# Environment / secrets
+# ──────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+secrets.py
+*.pem
+*.key
+
+# ──────────────────────────────────────────────
+# Binaries (platform-specific, redistribute separately)
+# ──────────────────────────────────────────────
+
+sldl.exe
+sldl
+*.dll
+*.so
+*.dylib
+*.pdb
+
+# If you keep a portable Node runtime or similar
+node/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ──────────────────────────────────────────────
+# IDE / Editor
+# ──────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.~lock.*
+.project
+.classpath
+.settings/
+
+# ──────────────────────────────────────────────
+# OS junk
+# ──────────────────────────────────────────────
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.directory
+.fuse_hidden*
+.Trash-*
+.nfs*
+
+# ──────────────────────────────────────────────
+# Project-specific
+# ──────────────────────────────────────────────
+# Static files folder is tracked (contains app.js, style.css)
+!static/
+!static/**
+
+# Keep requirements and batch scripts
+!requirements.txt
+!setup.bat
+!run.bat
+!*.md
+
+# Downloaded binaries (setup.bat fetches these)
+sockseek.exe
+sockseek.zip
+sockseek_tmp/

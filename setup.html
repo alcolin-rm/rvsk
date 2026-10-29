@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Setup - Revseeker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+            background: #1c2c54;
+            color: #111;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 20px;
+        }
+
+        .setup-shell {
+            width: 100%;
+            max-width: 720px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #e8e8e8;
+            padding: 14px 22px;
+            border-radius: 12px;
+        }
+        .brand-mark {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6em;
+            color: #1c2c54;
+            background: #fff;
+            border: 2px solid #c8c8c8;
+            border-radius: 8px;
+        }
+        .brand-name {
+            font-size: 1.85em;
+            font-weight: 400;
+            color: #111;
+            letter-spacing: -0.5px;
+        }
+        .brand-spacer { flex: 1; }
+        .step-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: #fff;
+            border: 2px solid #c8c8c8;
+            border-radius: 999px;
+            font-size: 0.85em;
+            color: #333;
+            font-family: 'Consolas', monospace;
+        }
+        .step-chip .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #1c2c54;
+        }
+
+        .card {
+            background: #e8e8e8;
+            border-radius: 12px;
+            padding: 22px 26px;
+        }
+        .card h2 {
+            font-size: 1.25em;
+            font-weight: 400;
+            color: #111;
+            margin-bottom: 12px;
+        }
+
+        .card p {
+            font-size: 0.92em;
+            line-height: 1.55;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .card p:last-child { margin-bottom: 0; }
+
+        .card a {
+            color: #1c2c54;
+            font-weight: 600;
+            text-decoration: none;
+            border-bottom: 2px solid #1c2c54;
+        }
+        .card a:hover {
+            color: #2a3f70;
+            border-color: #2a3f70;
+        }
+
+        .notice {
+            background: #fff;
+            border-left: 3px solid #1c2c54;
+            padding: 14px 18px;
+            margin: 14px 0;
+            border-radius: 6px;
+            font-size: 0.88em;
+            line-height: 1.55;
+            color: #333;
+        }
+        .notice ul {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0 0 0;
+        }
+        .notice ul li {
+            padding-left: 16px;
+            position: relative;
+            margin-bottom: 6px;
+        }
+        .notice ul li:last-child { margin-bottom: 0; }
+        .notice ul li::before {
+            content: '\2014';
+            position: absolute;
+            left: 0;
+            color: #1c2c54;
+        }
+
+        label {
+            display: block;
+            font-size: 0.78em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            margin-top: 14px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 11px 14px;
+            background: #fff;
+            border: 2px solid #c8c8c8;
+            border-radius: 6px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.95em;
+            color: #111;
+            transition: border-color 0.15s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #1c2c54;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 11px 22px;
+            border: 2px solid #1c2c54;
+            background: #1c2c54;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95em;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s, color 0.15s;
+        }
+        button:hover:not(:disabled) { background: #2a3f70; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .status {
+            margin-top: 14px;
+            padding: 11px 16px;
+            border-radius: 6px;
+            font-size: 0.88em;
+            line-height: 1.45;
+            display: none;
+        }
+        .status.error {
+            display: block;
+            background: #ffe0e0;
+            border: 2px solid #c02020;
+            color: #8a1010;
+        }
+        .status.success {
+            display: block;
+            background: #e0f5e5;
+            border: 2px solid #1a7a3a;
+            color: #0a4a1a;
+        }
+
+        .hint {
+            font-size: 0.8em;
+            color: #555;
+            margin-top: 14px;
+            line-height: 1.5;
+        }
+        .hint code {
+            background: #d8d8d8;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+<div class="setup-shell">
+
+    <header class="brand">
+        <div class="brand-mark">&#9881;</div>
+        <div class="brand-name">Revseeker</div>
+        <div class="brand-spacer"></div>
+        <div class="step-chip"><span class="dot"></span>first-run setup</div>
+    </header>
+
+    <div class="card">
+        <h2>What is Soulseek?</h2>
+        <p>
+            Soulseek is a peer-to-peer (P2P) file-sharing network, popular for music.
+            When you download a file, you're downloading it directly from another
+            user's computer, not from a central server. Likewise, other users can
+            download files from you.
+        </p>
+        <div class="notice">
+            <strong>Because it's P2P:</strong>
+            <ul>
+                <li>You need a Soulseek account to use it.</li>
+                <li>Downloads go faster when more users share the same file.</li>
+                <li>Users who share files get faster download speeds themselves.</li>
+                <li>In some countries (e.g. Russia), the network may need a VPN to reach reliably.</li>
+            </ul>
+        </div>
+        <p>
+            Don't have an account yet?
+            <a href="https://www.slsknet.org/news/node/1" target="_blank" rel="noopener">
+                Register on slsknet.org
+            </a>
+        </p>
+    </div>
+    <div class="card">
+        <h2>Why only VK?</h2>
+        <p>
+            this tool reads track lists from vk playlists. spotify, deezer,
+            soundcloud and the rest are all doable in theory. but in this case this app won't live long.
+        </p>
+        <p>
+            vk is free of western corporate overreach, 90% of the time. 
+            one track instance is taken down, 3 more appear.
+        </p>
+        <p>
+            if you are sour because your library is somewhere else, there are things you can do to 
+            bring it to vk. then come back here.
+
+            but keep in mind that target audience are people who are already on vk.
+        </p>
+    </div>
+    <div class="card">
+        <h2>Enter your Soulseek credentials</h2>
+        <form id="setupForm">
+            <label for="username">Soulseek username</label>
+            <input type="text" id="username" placeholder="myusername"
+                   autocomplete="off" required>
+
+            <label for="password">Soulseek password</label>
+            <input type="password" id="password" placeholder="your Soulseek password"
+                   autocomplete="off" required>
+
+            <label for="outputDir">Download folder (optional)</label>
+            <input type="text" id="outputDir"
+                   placeholder="Leave empty to use ./downloads next to the app">
+
+            <div class="actions">
+                <button type="submit" id="submitBtn">Save and continue</button>
+            </div>
+
+            <div id="errorBox" class="status error"></div>
+            <div id="okBox" class="status success"></div>
+
+            <p class="hint">
+                Your credentials are stored locally in <code>sockseek.conf</code>
+                next to the app. Nothing is sent to any server.
+            </p>
+        </form>
+    </div>
+
+</div>
+
+<script>
+document.getElementById('setupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const err = document.getElementById('errorBox');
+    const ok = document.getElementById('okBox');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    err.style.display = 'none';
+    ok.style.display = 'none';
+
+    const fd = new FormData();
+    fd.append('soulseek_username', document.getElementById('username').value);
+    fd.append('soulseek_password', document.getElementById('password').value);
+    fd.append('output_dir', document.getElementById('outputDir').value);
+
+    try {
+        const r = await fetch('/api/setup', { method: 'POST', body: fd });
+        if (!r.ok) {
+            const d = await r.json().catch(() => ({}));
+            throw new Error(d.detail || 'Setup failed');
+        }
+        ok.textContent = 'Setup complete. Redirecting...';
+        ok.style.display = 'block';
+        setTimeout(() => { window.location.href = '/'; }, 800);
+    } catch (ex) {
+        err.textContent = ex.message;
+        err.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save and continue';
+    }
+});
+</script>
+</body>
+</html>
