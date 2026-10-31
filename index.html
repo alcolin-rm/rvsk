@@ -54,6 +54,27 @@
                 <span class="tick-hint">prefer one folder / seeder</span>
             </div>
 
+            <!-- New filters row -->
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label>Format</label>
+                    <select id="filterFormat">
+                        <option value="flac,mp3" selected>FLAC preferred</option>
+                        <option value="flac">FLAC only</option>
+                        <option value="mp3">MP3 only</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Min bitrate</label>
+                    <select id="filterMinBitrate">
+                        <option value="128">128 kbps</option>
+                        <option value="192" selected>192 kbps</option>
+                        <option value="256">256 kbps</option>
+                        <option value="320">320 kbps</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="action-row">
                 <button id="vkFetchBtn" class="secondary" disabled>Fetch from VK</button>
                 <button id="downloadBtn" class="primary" disabled>Download</button>
@@ -81,29 +102,16 @@
 
     </div>
 
-            <!-- RIGHT COLUMN -->
+    <!-- RIGHT COLUMN -->
     <div class="right">
-
-        <h1 class="right-heading">"fake soulseek"</h1>
-
         <div class="right-surface">
-
-            <div class="browse-window">
-                <div class="browse-scroll" id="browseScroll">
-                    <div class="muted" style="padding: 24px; text-align: center;">
-                        Files will appear here as the downloader picks seeders.
-                    </div>
-                </div>
-
-                <div class="browse-footer">
-                    <button class="bf-btn">Filter Help</button>
-                    <select class="bf-select"><option>-- saved filters --</option></select>
-                    <input type="text" class="bf-input">
-                    <button class="bf-btn">Clear</button>
-                    <button class="bf-btn">Save Filt</button>
-                </div>
+            <!-- Daemon Log replaces the fake soulseek table -->
+            <div class="daemon-log-window">
+                <div class="daemon-log-header">daemon log</div>
+                <pre id="daemonLog" class="daemon-log-body">No active jobs.</pre>
             </div>
 
+            <!-- Disclaimer remains -->
             <div class="expect-panel">
                 <div class="expect-title">What to expect</div>
                 <ul class="expect-list">
@@ -120,13 +128,16 @@
                         <strong>little to no soundcloud music.</strong>
                         fresh web-only genres (hardtech, jumpstyle, slowed and
                         reverb edits, TikTok mixes, YouTube rips) rarely exist here.
-                        
+                    </li>
+                    <li>
+                        <strong>the search is less sensitive.</strong>
+                        an iTunes-api is being used to double-check song names,
+                        allowing for a margin for error in track names written by hand.
                     </li>
                     <li>
                         <strong>lossless is common.</strong>
                         whole-album FLAC is often available from a single seeder. you are unlikely to hear
                         a difference, depending on your audio setup.
-                        
                     </li>
                     <li>
                         <strong>some tracks take a few tries.</strong>
@@ -134,10 +145,10 @@
                     </li>
                 </ul>
             </div>
-
         </div>
-
     </div>
+
+</div>
 
 <script src="/static/app.js"></script>
 </body>

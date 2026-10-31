@@ -1,4 +1,3 @@
-# main.py
 import asyncio
 import atexit
 import hashlib
@@ -231,8 +230,6 @@ async def download(
     playlist_name: str = Form(""),
     format_pref: str = Form("flac,mp3"),
     min_bitrate: int = Form(192),
-    pref_bitrate: int = Form(320),
-    length_tol: int = Form(5),
 ):
     tracks = parse_track_list(track_list)
     if not tracks:
@@ -261,8 +258,6 @@ async def download(
         "tracks": tracks,
         "leechers": {},
         "counted_tracks": [],
-        "browse_entries": [],
-        "browse_index": {},
         "workflow_id": None,
     }
 
@@ -282,7 +277,6 @@ async def download(
             jobs[job_id]["status"] = "searching"
             jobs[job_id]["message"] = "Waiting for Sockseek daemon..."
             
-            # Wait for the daemon to be fully connected to Soulseek (up to 30s)
             for _ in range(30):
                 if await daemon_is_ready():
                     break
@@ -293,7 +287,6 @@ async def download(
                 jobs[job_id]["message"] = "Sockseek daemon not reachable."
                 return
 
-            # Canonicalize manual input via iTunes Search API
             from metadata_fixer import canonicalize_tracks
             
             final_tracks = tracks
@@ -315,10 +308,6 @@ async def download(
                 output_dir=output_dir,
                 format_pref=format_pref,
                 min_bitrate=min_bitrate,
-                pref_bitrate=pref_bitrate,
-                length_tol=length_tol,
-                album_mode=album_mode,
-                playlist_name=playlist_name,
             )
 
             workflow_id = summary.get("workflowId")
@@ -370,6 +359,20 @@ async def get_job_log(job_id: str):
     job = jobs[job_id]
     return JSONResponse({"log": "\n".join(job.get("log", [])), "source": "memory"})
 
+@app.get("/api/daemon-log")
+async def get_daemon_log():
+    log_path = BASE_DIR / "daemon.log"
+    if not log_path.exists():
+        return JSONResponse({"log": "Waiting for daemon to write logs..."})
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()
+        if not lines:
+            return JSONResponse({"log": "Waiting for daemon to write logs..."})
+        return JSONResponse({"log": "".join(lines[-200:])})
+    except Exception as e:
+        return JSONResponse({"log": f"Error reading log: {e}"})
+
 @app.get("/api/download/{job_id}/cancel")
 async def cancel_job_endpoint(job_id: str):
     if job_id not in jobs:
@@ -407,7 +410,7 @@ def _spawn_daemon():
 
     try:
         proc = subprocess.Popen(
-            [str(SOCKSEEK_BIN), "daemon", "--server-port", str(DAEMON_PORT), "--log-file", str(log_path)],
+            [str(SOCKSEEK_BIN), "daemon", "--server-port", str(DAEMON_PORT), "--log-file", str(log_path), "-vv"],
             cwd=str(BASE_DIR), stdout=None, stderr=None, stdin=subprocess.DEVNULL, creationflags=creation_flags,
         )
         _daemon_pid = proc.pid

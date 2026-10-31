@@ -44,7 +44,7 @@ async function fetchFromVK() {
         setVKStatus('Waiting for extension to respond (up to 90 seconds)...', 'info');
         btn.textContent = 'Waiting...';
 
-        const deadline = Date.now() + 30000;
+        const deadline = Date.now() + 90000;
         let result = null;
         while (Date.now() < deadline) {
             await new Promise(r => setTimeout(r, 1500));
@@ -57,11 +57,7 @@ async function fetchFromVK() {
         }
 
         if (!result) {
-            throw new Error(
-                'No response from the extension. Make sure it is installed, ' +
-                'loaded in this browser, and the Revseeker web app is running at ' +
-                'http://127.0.0.1:8000.'
-            );
+            throw new Error('No response from the extension. Make sure it is installed and running.');
         }
         if (result.error) {
             throw new Error(result.error);
@@ -81,13 +77,9 @@ async function fetchFromVK() {
         trackList.dispatchEvent(new Event('input'));
         albumOrLink.dispatchEvent(new Event('input'));
 
-        setVKStatus(
-            `Loaded ${result.total} tracks from "${result.playlistTitle}"`,
-            'success'
-        );
+        setVKStatus(`Loaded ${result.total} tracks from "${result.playlistTitle}"`, 'success');
     } catch (e) {
         setVKStatus(e.message, 'error');
-        console.error('[VK fetch]', e);
     } finally {
         btn.disabled = false;
         btn.textContent = 'Fetch from VK';
@@ -101,7 +93,7 @@ async function fetchFromVK() {
 async function startDownload() {
     const list = document.getElementById('trackList').value;
     if (!list.trim()) {
-        alert('Paste a track list first');
+        setVKStatus('Paste a track list first', 'error');
         return;
     }
 
@@ -109,6 +101,9 @@ async function startDownload() {
     fd.append('track_list', list);
     fd.append('playlist_name', document.getElementById('albumOrLink').value);
     fd.append('album_mode', document.getElementById('preferOneSeeder').checked ? 'true' : 'false');
+    
+    fd.append('format_pref', document.getElementById('filterFormat').value);
+    fd.append('min_bitrate', document.getElementById('filterMinBitrate').value);
 
     const btn = document.getElementById('downloadBtn');
     btn.disabled = true;
@@ -124,19 +119,14 @@ async function startDownload() {
         
         const data = await r.json();
         
-        // DEFENSIVE CHECK: If data is null, throw a clear error
         if (!data || !data.job_id) {
-            throw new Error('Server returned an invalid response (missing job_id)');
+            throw new Error('Server returned an invalid response.');
         }
 
-        setVKStatus(
-            `Download started - job ${data.job_id} (${data.total} tracks)`,
-            'success'
-        );
+        setVKStatus(`Download started - job ${data.job_id} (${data.total} tracks)`, 'success');
         startPolling();
     } catch (e) {
         setVKStatus(e.message, 'error');
-        alert('Error: ' + e.message);
     } finally {
         btn.disabled = false;
         btn.textContent = 'Download';
@@ -156,7 +146,7 @@ async function fetchJobs() {
         const jobs = d.jobs || {};
         renderJobs(jobs);
         renderLeechers(jobs);
-        renderBrowseWindow(jobs);
+        updateDaemonLog(jobs);
     } catch (e) {
         // ignore
     }
@@ -166,15 +156,10 @@ async function fetchJobs() {
 // Jobs panel
 // ──────────────────────────────────────────────────────────────
 
-// Snapshot the current scroll positions of any open log pre blocks
-// so we can restore them after re-rendering.
 function captureLogScrolls() {
     const map = {};
     document.querySelectorAll('pre[data-logid]').forEach(el => {
-        map[el.dataset.logid] = {
-            top: el.scrollTop,
-            height: el.scrollHeight,
-        };
+        map[el.dataset.logid] = { top: el.scrollTop, height: el.scrollHeight };
     });
     return map;
 }
@@ -186,7 +171,6 @@ function restoreLogScrolls(map) {
         const grew = el.scrollHeight > saved.height;
         const atBottom = saved.top + el.clientHeight >= saved.height - 5;
         if (atBottom && grew) {
-            // User was already at the bottom; keep them there
             el.scrollTop = el.scrollHeight;
         } else {
             el.scrollTop = saved.top;
@@ -205,15 +189,11 @@ function renderJobs(jobs) {
     }
     block.classList.remove('hidden');
 
-    // Snapshot scroll positions before replacing DOM
     const scrolls = captureLogScrolls();
-
-    // Snapshot the outer panel scroll too
     const outerTop = block.scrollTop;
 
     el.innerHTML = entries.map(j => {
         const pct = (j.progress || 0) * 100;
-        // Last 40 lines only, keep the HTML small enough for 2s repaints
         const log = (j.log || []).slice(-40).join('\n');
         const folder = j.folder_name ? ` -> ${escapeHtml(j.folder_name)}` : '';
         return `
@@ -226,7 +206,7 @@ function renderJobs(jobs) {
                 <div class="progress">
                     <div class="progress-fill" style="width:${pct}%"></div>
                 </div>
-                    <div class="job-stats">
+                <div class="job-stats">
                     ${j.downloaded || 0} / ${j.total || 0} downloaded | 
                     ${j.failed || 0} failed
                     ${j.skipped ? ` | ${j.skipped} skipped` : ''}
@@ -236,9 +216,13 @@ function renderJobs(jobs) {
         `;
     }).join('');
 
-    // Restore scroll positions
     restoreLogScrolls(scrolls);
     block.scrollTop = outerTop;
+
+    const failures = entries.reduce((acc, j) => acc + (j.failed || 0), 0);
+    if (failures > 0 && !entries.some(j => ['running', 'searching', 'starting'].includes(j.status))) {
+        setVKStatus(`⚠️ ${failures} tracks failed. Check the logs or try changing the format filter.`, 'error');
+    }
 }
 
 function clearFinishedJobs() {
@@ -251,9 +235,9 @@ function clearFinishedJobs() {
             if (id) hiddenJobIds.add(id);
         }
     });
-    // Re-render immediately with the updated filter
     fetchJobs();
 }
+
 // ──────────────────────────────────────────────────────────────
 // Seeders panel
 // ──────────────────────────────────────────────────────────────
@@ -264,6 +248,7 @@ function renderLeechers(jobs) {
     const totals = {};
 
     for (const job of Object.values(jobs)) {
+        if (hiddenJobIds.has(job.id)) continue;
         const leech = job.leechers || {};
         for (const [user, count] of Object.entries(leech)) {
             totals[user] = (totals[user] || 0) + count;
@@ -277,102 +262,47 @@ function renderLeechers(jobs) {
     }
     block.classList.remove('hidden');
 
-    // Preserve scroll
     const top = block.scrollTop;
-
     el.innerHTML = entries.map(([user, count]) => `
         <div class="leecher-row">
             <span class="leecher-name">${escapeHtml(user)}</span>
             <span class="leecher-count">${count} file${count === 1 ? '' : 's'}</span>
         </div>
     `).join('');
-
     block.scrollTop = top;
 }
 
 // ──────────────────────────────────────────────────────────────
-// Fake soulseek panel - live download feed
+// Daemon Log Viewer
 // ──────────────────────────────────────────────────────────────
 
-function renderBrowseWindow(jobs) {
-    const scroll = document.getElementById('browseScroll');
-
-    // Collect entries from every job, newest job first
-    const entries = [];
-    const orderedJobs = Object.values(jobs)
-        .sort((a, b) => (b.created || '').localeCompare(a.created || ''));
-
-    for (const job of orderedJobs) {
-        for (const entry of (job.browse_entries || [])) {
-            entries.push({ ...entry, jobId: job.id });
-        }
-    }
-
+async function updateDaemonLog(jobs) {
+    const el = document.getElementById('daemonLog');
+    const entries = Object.values(jobs).filter(j => !hiddenJobIds.has(j.id));
+    
     if (!entries.length) {
-        scroll.innerHTML = `
-            <div class="muted" style="padding: 24px; text-align: center;">
-                Files will appear here as the downloader picks seeders.
-            </div>`;
+        el.textContent = "No active jobs.";
         return;
     }
 
-    // Preserve scroll if user was near the bottom
-    const prevTop = scroll.scrollTop;
-    const prevHeight = scroll.scrollHeight;
-    const wasAtBottom = prevTop + scroll.clientHeight >= prevHeight - 10;
-
-    // Group by seeder
-    const bySeeder = {};
-    for (const e of entries) {
-        const s = e.seeder;
-        if (!bySeeder[s]) bySeeder[s] = [];
-        bySeeder[s].push(e);
-    }
-
-    const seeders = Object.entries(bySeeder)
-        .sort((a, b) => b[1].length - a[1].length);
-
-    scroll.innerHTML = seeders.map(([seeder, list]) => {
-        // Sort: active first, then done, then failed; within a group by filename
-        const order = { active: 0, done: 1, failed: 2 };
-        list.sort((a, b) => {
-            const d = order[a.state] - order[b.state];
-            if (d !== 0) return d;
-            const fa = (a.path || '').split(/[\\/]/).pop() || '';
-            const fb = (b.path || '').split(/[\\/]/).pop() || '';
-            return fa.localeCompare(fb);
-        });
-
-        const rows = list.map(e => {
-            const filename = (e.path || '').split(/[\\/]/).pop() || e.path || '';
-            const dotClass = `dot-${e.state}`;
-            return `<tr>
-                <td class="dot-cell"><span class="status-dot ${dotClass}"></span></td>
-                <td>${escapeHtml(filename)}</td>
-                <td class="track-cell">${escapeHtml(e.track)}</td>
-            </tr>`;
-        }).join('');
-
-        return `
-            <div class="browse-folder">
-                <div class="folder-path">${escapeHtml(seeder)} (${list.length} file${list.length === 1 ? '' : 's'})</div>
-                <table class="file-table">
-                    <thead>
-                        <tr><th></th><th>File</th><th>Track</th></tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            </div>
-        `;
-    }).join('');
-
-    // Auto-follow if user was at bottom
-    if (wasAtBottom) {
-        scroll.scrollTop = scroll.scrollHeight;
-    } else {
-        scroll.scrollTop = prevTop;
+    try {
+        const r = await fetch('/api/daemon-log');
+        const d = await r.json();
+        // d.log is guaranteed to be a string from the backend
+        const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+        el.textContent = d.log;
+        if (isNearBottom) {
+            el.scrollTop = el.scrollHeight;
+        }
+    } catch (e) { 
+        el.textContent = "Failed to fetch daemon log.";
     }
 }
+
+
+
+
+
 
 // ──────────────────────────────────────────────────────────────
 // Full log viewer
@@ -401,9 +331,7 @@ async function loadSettings() {
             cfg.soulseek_username || '(not configured)';
         document.getElementById('settingsOutput').textContent =
             cfg.output_dir || '-';
-    } catch (e) {
-        // ignore
-    }
+    } catch (e) {}
 }
 
 async function refreshAccountChip() {
@@ -464,9 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function looksLikeVKUrl(val) {
         if (!val) return false;
         const v = val.trim().toLowerCase();
-        // Accept with or without scheme
         if (/^(https?:\/\/)?(www\.)?vk\.(com|ru)\//.test(v)) return true;
-        // Accept fragment forms
         if (/(music\/playlist|audio_playlist)[\/_]/i.test(v)) return true;
         return false;
     }
@@ -474,9 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateButtons() {
         const linkVal  = albumOrLink.value.trim();
         const trackVal = trackListArea.value.trim();
-
         vkFetchBtn.disabled  = !looksLikeVKUrl(linkVal);
-
         const isUrl = looksLikeVKUrl(linkVal);
         const hasAlbumOrTrack = isUrl ? false : linkVal.length > 0;
         downloadBtn.disabled = !(trackVal || hasAlbumOrTrack);
@@ -488,7 +412,6 @@ document.addEventListener('DOMContentLoaded', () => {
     vkFetchBtn.addEventListener('click', fetchFromVK);
     clearLogsBtn.addEventListener('click', clearFinishedJobs);
 
-        // Fire on every plausible change path
     ['input', 'change', 'keyup', 'paste', 'blur'].forEach(evt => {
         albumOrLink.addEventListener(evt, () => setTimeout(updateButtons, 0));
     });
@@ -496,8 +419,8 @@ document.addEventListener('DOMContentLoaded', () => {
         trackListArea.addEventListener(evt, () => setTimeout(updateButtons, 0));
     });
 
-    // Safety net for programmatic .value changes
     setInterval(updateButtons, 500);
+    
     document.getElementById('jobsList').addEventListener('click', (e) => {
         const btn = e.target.closest('button[data-joblog]');
         if (btn) openFullLog(btn.dataset.joblog);
@@ -506,23 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateButtons();
     refreshAccountChip();
     loadSettings();
-
     setInterval(refreshAccountChip, 15000);
-    
-    
-    // Check if VK URL was passed from the extension
-    const vkUrlParam = new URLSearchParams(window.location.search).get('vk_url');
-    if (vkUrlParam) {
-        // Put the URL in the input field
-        albumOrLink.value = vkUrlParam;
-        
-        // Remove the query param from the address bar so refreshing doesn't re-trigger it
-        window.history.replaceState({}, document.title, window.location.pathname);
-        
-        // Enable the button and trigger the fetch
-        updateButtons();
-        setTimeout(fetchFromVK, 500);
-    }
 
     startPolling();
 });
